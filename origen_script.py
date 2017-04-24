@@ -64,7 +64,7 @@ origen_prefix='=origen\n' +\
               '    digits=6\n' +\
               '}\n' +\
               'bounds{\n' + \
-              '    gamma=[100L 5.0e6 1.0e3]\n' + \
+              '    gamma=[1024i 4.0e6 100.0e3]\n' + \
               '    neutron=[1e6 1e3 1]\n' +\
               '}' 
 opus_isotopes='=opus\n library="w17x17.f33"\n units=grams\n' + \
