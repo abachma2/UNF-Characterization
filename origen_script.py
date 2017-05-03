@@ -3,7 +3,7 @@ import re
 days=540
 cycles=3
 
-BU=[20,25,30,35,40,45,50,55,60]
+BU=[20,25,30,35,40,45,50,55,60] #Units of GWd
 CoolingTimes=[5,6.5,8,10,15,25]
 
 nLibs=1
@@ -15,7 +15,7 @@ import numpy as np
 #Calculating Enrichment based on burnup value
 EN=np.array([])
 en = np.array([])
-with io.open(str('BUandEN.txt'),'w') as f:
+with io.open(str('BUandEN.txt'),'w') as f: #saved to file to be recalled in data,py
     for x in BU:
         CalcEn=np.power(x,0.65)*.31
         en_minus_10 = CalcEn*0.9
@@ -34,7 +34,7 @@ with io.open(str('BUandEN.txt'),'w') as f:
     EN = np.around(EN,decimals=3)
     EN.shape = (9,6)
     
-    #Putting BU, EN, and cooling times into matrix to use for data analysis
+    #Putting BU, EN, and cooling times into matrix to use for data analysis in MATLAB
     for x in range(0,len(BU)):
         enTemp = EN[x]
         for y in enTemp:
@@ -51,6 +51,7 @@ Power=[]
 U235=[]
 U238=[]
 
+#ARP constant strings
 arp_prefix = "=arp\n" + \
              " w17x17\n "
 arp_suffix = str(modDens) + "\n" + \
@@ -64,7 +65,7 @@ origen_prefix='=origen\n' +\
               '    digits=6\n' +\
               '}\n' +\
               'bounds{\n' + \
-              '    gamma=[1024i 4.0e6 100.0e3]\n' + \
+              '    gamma=[1024i 100.0e3 4.0e6]\n' + \
               '    neutron=[1e6 1e3 1]\n' +\
               '}' 
 opus_isotopes='=opus\n library="w17x17.f33"\n units=grams\n' + \
@@ -124,6 +125,7 @@ save= '    neutron=yes\n' + \
 
 t=[9,8,7,6,5,4,3,2,1]
 
+#Calculating downtime intervals for the three downtimes, Rule of 3 is not violated
 downTimeString = ''
 d_1=''
 d_2=''
@@ -140,7 +142,7 @@ for i in range(1,cycles+1):
         else:
             d_3 = d_3 + d_t + ' '
 
-#Last, extended down time. Hardoced to ensure that desired times are included
+#Last, extended down time. Hardcoed to ensure that desired times are included
 Down_Time = '3505.185 3505.556 3506.669 3510.007 3520.021 3550.062 3640.185 3910.556 4052.5 4600 5330 7155 10805'
 
 
@@ -173,9 +175,11 @@ for x in range(0,len(BU)):
         enTmp = EN[x]
         for y in enTmp:
             with io.open(str(reactor) + str(BU[x]) + str('.') + str(y) + str(file_end),'w') as f:
+                # Caluclating Powers, and converting to MWd for burnup
                 cyclePow = (BU[x]*1000)/(1.0*days*cycles)
                 Pow=("{0:.3f}".format(cyclePow))
                 Power.append(Pow)
+                #Calculating U235 and U238 mounts for varying enrchment
                 U235=(y*1000)
                 U238=(100000-((y*1000)+534+276))
                 #Begin arp file
@@ -208,6 +212,7 @@ for x in range(0,len(BU)):
                     origen_string = origen_string + str(up_1) + str(cycle_starts[i-1]+54) + ' '\
                                                   + str(cycle_starts[i-1]+days) + str(' ]') \
                                                   + "\n" + str("    }") 
+                    #Power values for each cycle, assume constant poweer for each cycle
                     origen_string = origen_string + "\n" + str("    power=[10R") + str(Pow) \
                                                   + str("]") + "\n"
                     #Materails, for cycle 1 only
@@ -247,7 +252,7 @@ for x in range(0,len(BU)):
                         origen_string = origen_string + "\n" + str(print_down)
                     else:
                         origen_string = origen_string
-                    #Saving the last time in the third Doen Cycle
+                    #Saving the desired times in the third Down Cycle
                     if i == 3:
                        origen_string = origen_string + "\n" + str(save)
                     else: 
@@ -258,7 +263,7 @@ for x in range(0,len(BU)):
                                                       + ']\n' +str(last_down_3)
 
          
-            #End of ORIGEN input; start OPUS blocks
+            #End of ORIGEN input; start OPUS blocks Only printed once.
                 origen_string = origen_string + "\nend"
                 origen_string = origen_string + "\n" + str(opus_isotopes) + str(opus_gamma) \
                                               + str(opus_neutron)    
@@ -268,6 +273,7 @@ for x in range(0,len(BU)):
 
 f.close()
 
+#Saving enrighment values into a file to be recalled in data.py
 with io.open(str('EN_values.txt'),'w') as f:
     EN = '\n'.join(' '.join(str(cell) for cell in row) for row in EN)
     f.write(str(EN))
